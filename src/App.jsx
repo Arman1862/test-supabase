@@ -45,7 +45,7 @@ function App() {
 
   return (
     <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
-      <h1>Test Supabase Ar-Ma</h1>
+      <h1>Test Database</h1>
       
       <form onSubmit={handleSubmit}>
         <input 
@@ -60,7 +60,7 @@ function App() {
           onChange={(e) => setBody(e.target.value)} 
         />
         <br />
-        <button type="submit">Kirim ke Supabase</button>
+        <button type="submit">Kirim ke Database</button>
       </form>
 
       <hr />
