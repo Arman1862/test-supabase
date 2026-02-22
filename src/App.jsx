@@ -7,8 +7,13 @@ function App() {
   const [body, setBody] = useState('')
 
   // 1. Fungsi ini murni cuma buat nge-fetch data dari Supabase, tanpa nyentuh state
-  const getPostsFromDB = async () => {
-    const { data, error } = await supabase.from('posts').select('*')
+const getPostsFromDB = async () => {
+    // Tambahkan .order() setelah .select()
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*')
+      .order('created_at', { ascending: false }) // false artinya paling baru di atas
+
     if (error) {
       console.error('Error fetching:', error)
       return null
