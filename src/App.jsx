@@ -28,25 +28,44 @@ const getPostsFromDB = async () => {
     })
   }, [])
 
-  // 3. Fungsi buat handle form submit
-  async function handleSubmit(e) {
-    e.preventDefault()
-    
-    // Insert data ke Supabase
-    const { error } = await supabase.from('posts').insert([{ title, body }])
-    
-    if (error) {
-      alert('Gagal input: ' + error.message)
-    } else {
-      // Kosongin form
-      setTitle('')
-      setBody('')
-      
-      // Ambil data terbaru dari DB, lalu update state lagi
-      const newData = await getPostsFromDB()
-      if (newData) setPosts(newData)
+// Tambahin state baru buat file
+const [file, setFile] = useState(null)
+
+async function handleSubmit(e) {
+  e.preventDefault()
+  let publicUrl = ""
+
+  // 1. Proses Upload Gambar ke Storage
+  if (file) {
+    const fileName = `${Date.now()}_${file.name}`
+    const { data, error: uploadError } = await supabase.storage
+      .from('assets')
+      .upload(fileName, file)
+
+    if (uploadError) {
+      alert("Gagal upload gambar: " + uploadError.message)
+      return
     }
+
+    // 2. Ambil Link Public Gambarnya
+    const { data: publicData } = supabase.storage
+      .from('assets')
+      .getPublicUrl(fileName)
+    
+    publicUrl = publicData.publicUrl
   }
+
+  // 3. Simpan data ke Table (Teks + URL Gambar)
+  const { error } = await supabase.from('posts').insert([
+    { title, body, image_url: publicUrl }
+  ])
+
+  if (!error) {
+    setTitle(''); setBody(''); setFile(null)
+    const newData = await getPostsFromDB()
+    if (newData) setPosts(newData)
+  }
+}
 
   return (
     <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
@@ -58,6 +77,7 @@ const getPostsFromDB = async () => {
           value={title} 
           onChange={(e) => setTitle(e.target.value)} 
         />
+        <input type="file" onChange={(e) => setFile(e.target.files[0])} />
         <br /><br />
         <textarea 
           placeholder="Isi Body" 
@@ -72,6 +92,7 @@ const getPostsFromDB = async () => {
       <h3>Daftar Post:</h3>
       {posts && posts.map(post => (
         <div key={post.id} style={{ borderBottom: '1px solid #ccc', marginBottom: '10px' }}>
+          {post.image_url && <img src={post.image_url} alt="project" style={{width: '200px'}} />}
           <h4>{post.title}</h4>
           <p>{post.body}</p>
         </div>
